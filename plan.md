@@ -40,6 +40,8 @@
 - [x] Linux 打包 (.tar.gz)
 - [x] macOS 打包 (.tar.gz)
 - [x] GitHub Release 自动发布
+- [x] 日志系统集成
+- [x] 代码质量优化
 
 ## 文件结构
 ```
@@ -53,7 +55,8 @@ gomoku-glm5/
 │   ├── constants.py     # 常量定义
 │   ├── timer.py         # 计时器模块
 │   ├── sound.py         # 音效模块
-│   └── record.py        # 游戏记录模块
+│   ├── record.py        # 游戏记录模块
+│   └── logger.py        # 日志系统模块
 ├── assets/
 │   ├── fonts/           # 中文字体
 │   ├── images/          # 图片资源
@@ -76,4 +79,4 @@ gomoku-glm5/
 - v1.0.0 - 正式发布
 
 ## 当前状态
-v0.4.0 开发完成！准备发布新版本。
+v1.0.0 开发完成！准备正式发布版本。

@@ -11,6 +11,7 @@ from .ui import UI
 from .timer import GameTimer
 from .sound import SoundManager
 from .record import GameRecord, RecordManager
+from .logger import get_logger
 
 
 class Game:
@@ -20,6 +21,10 @@ class Game:
         """初始化游戏"""
         pygame.init()
         pygame.display.set_caption(WINDOW_TITLE)
+
+        # 初始化日志
+        self.logger = get_logger()
+        self.logger.log_game_start()
 
         # 创建窗口
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -58,6 +63,8 @@ class Game:
         # 运行标志
         self.running = True
 
+        self.logger.info("游戏初始化完成")
+
     def _update_button_rects(self):
         """更新按钮区域"""
         sidebar_x = BOARD_MARGIN + (BOARD_SIZE - 1) * CELL_SIZE + 60
@@ -89,6 +96,9 @@ class Game:
 
         # 播放按钮音效
         self.sound.play_button()
+
+        # 记录日志
+        self.logger.log_reset()
 
     def get_current_player_name(self):
         """获取当前玩家名称"""
@@ -139,6 +149,9 @@ class Game:
                 # 播放落子音效
                 self.sound.play_place()
 
+                # 记录落子日志
+                self.logger.log_move(row, col, self.current_player.player_type, len(self.board.move_history))
+
                 # 检查胜负
                 winner = self.board.check_winner(row, col)
                 if winner == PLAYER_BLACK:
@@ -178,6 +191,9 @@ class Game:
         # 保存记录
         self.record_manager.save_record(self.record)
 
+        # 记录日志
+        self.logger.log_game_end(winner)
+
     def handle_button_click(self, pos):
         """处理按钮点击"""
         if self.restart_btn_rect.collidepoint(pos):
@@ -192,19 +208,24 @@ class Game:
         if self.is_game_over():
             return
 
-        if self.board.undo_last_move():
-            # 播放悔棋音效
-            self.sound.play_undo()
+        if self.board.move_history:
+            last_move = self.board.move_history[-1]
+            if self.board.undo_last_move():
+                # 播放悔棋音效
+                self.sound.play_undo()
 
-            # 切换回上一个玩家
-            self.current_player = (
-                self.white_player if self.current_player == self.black_player
-                else self.black_player
-            )
+                # 记录悔棋日志
+                self.logger.log_undo(last_move[0], last_move[1], last_move[2])
 
-            # 切换计时器
-            if self.timer_enabled:
-                self.timer.switch_turn()
+                # 切换回上一个玩家
+                self.current_player = (
+                    self.white_player if self.current_player == self.black_player
+                    else self.black_player
+                )
+
+                # 切换计时器
+                if self.timer_enabled:
+                    self.timer.switch_turn()
 
     def run(self):
         """运行游戏主循环"""
