@@ -56,9 +56,30 @@ python main.py
 
 从 [Releases](https://github.com/ganecheng-ai/gomoku-glm5/releases) 页面下载对应平台的可执行文件：
 
-- **Windows**: 下载 `gomoku-glm5-windows-x64.zip`，解压后运行 `gomoku-glm5.exe`
-- **Linux**: 下载 `gomoku-glm5-linux-x64.tar.gz`，解压后运行 `gomoku-glm5`
-- **macOS**: 下载 `gomoku-glm5-macos-x64.tar.gz`，解压后运行 `gomoku-glm5`
+#### Windows
+- 下载 `gomoku-glm5-windows-x64.zip`
+- 解压后运行 `gomoku-glm5.exe`
+
+#### Linux
+有三种安装方式可选：
+
+1. **通用二进制** (推荐)
+   - 下载 `gomoku-glm5-linux-x64.tar.gz`
+   - 解压后运行 `gomoku-glm5`
+
+2. **Debian/Ubuntu (.deb)**
+   - 下载 `gomoku-glm5-linux-x64.deb`
+   - 安装: `sudo dpkg -i gomoku-glm5-linux-x64.deb`
+   - 运行: `gomoku-glm5`
+
+3. **AppImage** (无需安装)
+   - 下载 `gomoku-glm5-linux-x64.AppImage`
+   - 添加执行权限: `chmod +x gomoku-glm5-linux-x64.AppImage`
+   - 运行: `./gomoku-glm5-linux-x64.AppImage`
+
+#### macOS
+- 下载 `gomoku-glm5-macos-x64.tar.gz`
+- 解压后运行 `gomoku-glm5`
 
 ## 游戏规则
 
@@ -122,6 +143,7 @@ pyinstaller --onefile --windowed --name gomoku-glm5 main.py
 
 ## 版本历史
 
+- **v1.2.0** - 增强 Linux 发布格式 (.deb, .AppImage)
 - **v1.1.0** - 新增AI对战功能，游戏模式选择
 - **v1.0.0** - 正式发布版本，日志系统
 - **v0.4.0** - 高级功能（游戏记录、计时器、音效）

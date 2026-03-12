@@ -51,6 +51,12 @@
 - [x] 双人对战模式
 - [x] AI单元测试
 
+### 第七阶段：增强发布格式 (v1.2.0)
+- [x] Linux .deb 打包支持
+- [x] Linux .AppImage 打包支持
+- [x] 更新 README.md 下载说明
+- [x] 更新 GitHub Actions release 配置
+
 ## 文件结构
 ```
 gomoku-glm5/
@@ -81,6 +87,7 @@ gomoku-glm5/
 ```
 
 ## 版本历史
+- v1.2.0 - 增强 Linux 发布格式 (.deb, .AppImage)
 - v1.1.0 - AI对战功能，游戏模式选择
 - v1.0.0 - 正式发布，日志系统
 - v0.4.0 - 高级功能（游戏记录、计时器、音效）
@@ -89,4 +96,4 @@ gomoku-glm5/
 - v0.1.0 - 基础游戏框架
 
 ## 当前状态
-v1.1.0 开发完成！新增AI对战功能。
+v1.2.0 开发完成！增强 Linux 发布格式支持 (.deb, .AppImage)。

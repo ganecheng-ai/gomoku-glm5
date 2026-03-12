@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gomoku-glm5"
-version = "1.1.0"
+version = "1.2.0"
 description = "一个精美的五子棋游戏，支持简体中文界面"
 readme = "README.md"
 license = {text = "MIT"}

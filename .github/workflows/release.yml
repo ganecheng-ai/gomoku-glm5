@@ -77,6 +77,53 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name gomoku-glm5 main.py
 
+      - name: Build .deb package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p gomoku-glm5-deb/DEBIAN
+          mkdir -p gomoku-glm5-deb/usr/bin
+          mkdir -p gomoku-glm5-deb/usr/share/applications
+          mkdir -p gomoku-glm5-deb/usr/share/doc/gomoku-glm5
+          cp dist/gomoku-glm5 gomoku-glm5-deb/usr/bin/
+          cp README.md gomoku-glm5-deb/usr/share/doc/gomoku-glm5/
+          cp LICENSE gomoku-glm5-deb/usr/share/doc/gomoku-glm5/
+          echo "Package: gomoku-glm5" > gomoku-glm5-deb/DEBIAN/control
+          echo "Version: ${GITHUB_REF_NAME#v}" >> gomoku-glm5-deb/DEBIAN/control
+          echo "Section: games" >> gomoku-glm5-deb/DEBIAN/control
+          echo "Priority: optional" >> gomoku-glm5-deb/DEBIAN/control
+          echo "Architecture: amd64" >> gomoku-glm5-deb/DEBIAN/control
+          echo "Maintainer: ganecheng-ai" >> gomoku-glm5-deb/DEBIAN/control
+          echo "Description: 五子棋游戏 - 精美的五子棋游戏，支持简体中文界面" >> gomoku-glm5-deb/DEBIAN/control
+          echo "[Desktop Entry]" > gomoku-glm5-deb/usr/share/applications/gomoku-glm5.desktop
+          echo "Name=五子棋" >> gomoku-glm5-deb/usr/share/applications/gomoku-glm5.desktop
+          echo "Comment=Gomoku Game" >> gomoku-glm5-deb/usr/share/applications/gomoku-glm5.desktop
+          echo "Exec=gomoku-glm5" >> gomoku-glm5-deb/usr/share/applications/gomoku-glm5.desktop
+          echo "Type=Application" >> gomoku-glm5-deb/usr/share/applications/gomoku-glm5.desktop
+          echo "Categories=Game;BoardGame;" >> gomoku-glm5-deb/usr/share/applications/gomoku-glm5.desktop
+          dpkg-deb --build gomoku-glm5-deb dist/${{ matrix.asset_name }}.deb
+
+      - name: Build AppImage (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/doc/gomoku-glm5
+          cp dist/gomoku-glm5 AppDir/usr/bin/
+          cp README.md AppDir/usr/share/doc/gomoku-glm5/
+          cp LICENSE AppDir/usr/share/doc/gomoku-glm5/
+          echo "[Desktop Entry]" > AppDir/usr/share/applications/gomoku-glm5.desktop
+          echo "Name=五子棋" >> AppDir/usr/share/applications/gomoku-glm5.desktop
+          echo "Comment=Gomoku Game" >> AppDir/usr/share/applications/gomoku-glm5.desktop
+          echo "Exec=gomoku-glm5" >> AppDir/usr/share/applications/gomoku-glm5.desktop
+          echo "Icon=gomoku" >> AppDir/usr/share/applications/gomoku-glm5.desktop
+          echo "Type=Application" >> AppDir/usr/share/applications/gomoku-glm5.desktop
+          echo "Categories=Game;BoardGame;" >> AppDir/usr/share/applications/gomoku-glm5.desktop
+          ln -s usr/share/applications/gomoku-glm5.desktop AppDir/gomoku-glm5.desktop
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage --executable dist/gomoku-glm5 || true
+          mv gomoku-glm5-*.AppImage dist/${{ matrix.asset_name }}.AppImage || true
+
       - name: Create distribution package (Windows)
         if: matrix.os == 'windows-latest'
         run: |
@@ -114,12 +161,22 @@ jobs:
           name: ${{ matrix.asset_name }}
           path: dist/${{ matrix.asset_name }}.zip
 
-      - name: Upload artifact (Linux/macOS)
-        if: matrix.os != 'windows-latest'
+      - name: Upload artifact (macOS)
+        if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
           path: dist/${{ matrix.asset_name }}.tar.gz
+
+      - name: Upload artifacts (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: |
+            dist/${{ matrix.asset_name }}.tar.gz
+            dist/${{ matrix.asset_name }}.deb
+            dist/${{ matrix.asset_name }}.AppImage
 
   release:
     needs: build
@@ -158,14 +215,20 @@ jobs:
 
             ### 下载说明
             - **Windows**: 下载 `gomoku-glm5-windows-x64.zip`，解压后运行 `gomoku-glm5.exe`
-            - **Linux**: 下载 `gomoku-glm5-linux-x64.tar.gz`，解压后运行 `gomoku-glm5`
+            - **Linux**:
+              - 通用: 下载 `gomoku-glm5-linux-x64.tar.gz`，解压后运行 `gomoku-glm5`
+              - Debian/Ubuntu: 下载 `gomoku-glm5-linux-x64.deb`，使用 `sudo dpkg -i gomoku-glm5-linux-x64.deb` 安装
+              - AppImage: 下载 `gomoku-glm5-linux-x64.AppImage`，添加执行权限后直接运行
             - **macOS**: 下载 `gomoku-glm5-macos-x64.tar.gz`，解压后运行 `gomoku-glm5`
 
             ### 游戏特性
             - 精美的图形界面
             - 简体中文支持
+            - 双人对战模式
+            - 人机对战模式 (AI)
             - 悔棋功能
-            - 操作简单
+            - 计时器功能
+            - 游戏记录保存
 
             ### 系统要求
             - Python 3.8+ (如需从源码运行)
