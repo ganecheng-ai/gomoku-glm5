@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gomoku-glm5"
+version = "0.3.0"
+description = "一个精美的五子棋游戏，支持简体中文界面"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "ganecheng-ai"}
+]
+keywords = ["gomoku", "game", "五子棋", "python", "pygame"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Chinese (Simplified)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Games/Entertainment :: Board Games",
+]
+dependencies = [
+    "pygame>=2.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/ganecheng-ai/gomoku-glm5"
+Repository = "https://github.com/ganecheng-ai/gomoku-glm5"
+Issues = "https://github.com/ganecheng-ai/gomoku-glm5/issues"
+
+[project.scripts]
+gomoku = "gomoku.game:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gomoku*"]

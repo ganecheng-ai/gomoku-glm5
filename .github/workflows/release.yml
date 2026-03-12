@@ -1,0 +1,174 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pygame
+          pip install -e .
+
+      - name: Run tests
+        run: pytest tests/ -v
+
+  build:
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            artifact_name: gomoku-glm5
+            file_extension: .exe
+            asset_name: gomoku-glm5-windows-x64
+          - os: ubuntu-latest
+            artifact_name: gomoku-glm5
+            file_extension: ''
+            asset_name: gomoku-glm5-linux-x64
+          - os: macos-latest
+            artifact_name: gomoku-glm5
+            file_extension: ''
+            asset_name: gomoku-glm5-macos-x64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller pygame
+          pip install -e .
+
+      - name: Build executable (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pyinstaller --onefile --windowed --name gomoku-glm5 main.py
+
+      - name: Build executable (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pyinstaller --onefile --windowed --name gomoku-glm5 main.py
+
+      - name: Build executable (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          pyinstaller --onefile --windowed --name gomoku-glm5 main.py
+
+      - name: Create distribution package (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir dist/package
+          copy dist\gomoku-glm5.exe dist\package\
+          copy README.md dist\package\
+          copy LICENSE dist\package\
+          cd dist/package
+          7z a -tzip ../${{ matrix.asset_name }}.zip *
+
+      - name: Create distribution package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p dist/package
+          cp dist/gomoku-glm5 dist/package/
+          cp README.md dist/package/
+          cp LICENSE dist/package/
+          cd dist/package
+          tar -czvf ../${{ matrix.asset_name }}.tar.gz *
+
+      - name: Create distribution package (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p dist/package
+          cp dist/gomoku-glm5 dist/package/
+          cp README.md dist/package/
+          cp LICENSE dist/package/
+          cd dist/package
+          tar -czvf ../${{ matrix.asset_name }}.tar.gz *
+
+      - name: Upload artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.asset_name }}.zip
+
+      - name: Upload artifact (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.asset_name }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -la artifacts/
+
+      - name: Create checksums
+        run: |
+          cd artifacts
+          find . -type f -exec sha256sum {} \; > ../checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/**/*
+            checksums.txt
+          generate_release_notes: true
+          body: |
+            ## 五子棋游戏 (Gomoku Game)
+
+            一个精美的五子棋游戏，支持简体中文界面。
+
+            ### 下载说明
+            - **Windows**: 下载 `gomoku-glm5-windows-x64.zip`，解压后运行 `gomoku-glm5.exe`
+            - **Linux**: 下载 `gomoku-glm5-linux-x64.tar.gz`，解压后运行 `gomoku-glm5`
+            - **macOS**: 下载 `gomoku-glm5-macos-x64.tar.gz`，解压后运行 `gomoku-glm5`
+
+            ### 游戏特性
+            - 精美的图形界面
+            - 简体中文支持
+            - 悔棋功能
+            - 操作简单
+
+            ### 系统要求
+            - Python 3.8+ (如需从源码运行)
+            - 或直接运行打包好的可执行文件
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
