@@ -17,6 +17,7 @@ class UI:
         self.font_normal = None
         self.font_small = None
         self.font_timer = None
+        self.font_title = None
         self._init_fonts()
 
     def _init_fonts(self):
@@ -43,18 +44,21 @@ class UI:
                 self.font_normal = pygame.font.Font(font_path, FONT_SIZE_NORMAL)
                 self.font_small = pygame.font.Font(font_path, FONT_SIZE_SMALL)
                 self.font_timer = pygame.font.Font(font_path, 18)
+                self.font_title = pygame.font.Font(font_path, 48)
             else:
                 # 使用系统默认字体
                 self.font_large = pygame.font.SysFont('simhei', FONT_SIZE_TITLE)
                 self.font_normal = pygame.font.SysFont('simhei', FONT_SIZE_NORMAL)
                 self.font_small = pygame.font.SysFont('simhei', FONT_SIZE_SMALL)
                 self.font_timer = pygame.font.SysFont('simhei', 18)
+                self.font_title = pygame.font.SysFont('simhei', 48)
         except Exception:
             # 如果中文字体加载失败，使用默认字体
             self.font_large = pygame.font.Font(None, FONT_SIZE_TITLE)
             self.font_normal = pygame.font.Font(None, FONT_SIZE_NORMAL)
             self.font_small = pygame.font.Font(None, FONT_SIZE_SMALL)
             self.font_timer = pygame.font.Font(None, 18)
+            self.font_title = pygame.font.Font(None, 48)
 
     def draw_board(self, board):
         """绘制棋盘"""
@@ -148,42 +152,59 @@ class UI:
         title = self.font_large.render("五子棋", True, COLOR_TEXT)
         self.screen.blit(title, (sidebar_x + (sidebar_width - title.get_width()) // 2, 40))
 
+        # 绘制游戏模式
+        mode_text = "人机对战" if game.game_mode == GAME_MODE_PVE else "双人对战"
+        mode_surface = self.font_normal.render(f"模式: {mode_text}", True, COLOR_TEXT)
+        self.screen.blit(mode_surface, (sidebar_x + 15, 80))
+
         # 绘制当前玩家
         current_player = game.get_current_player_name()
         player_text = self.font_normal.render(f"当前: {current_player}", True, COLOR_TEXT)
-        self.screen.blit(player_text, (sidebar_x + 15, 100))
+        self.screen.blit(player_text, (sidebar_x + 15, 110))
 
         # 绘制步数
         moves_text = self.font_normal.render(f"步数: {game.get_total_moves()}", True, COLOR_TEXT)
-        self.screen.blit(moves_text, (sidebar_x + 15, 130))
+        self.screen.blit(moves_text, (sidebar_x + 15, 140))
 
         # 绘制计时器
         timer_info = game.get_timer_info()
         if timer_info:
-            self._draw_timer(sidebar_x + 15, 165, sidebar_width - 30, timer_info)
+            self._draw_timer(sidebar_x + 15, 175, sidebar_width - 30, timer_info)
 
         # 绘制游戏状态
         status = game.get_status_text()
         status_text = self.font_normal.render(status, True, COLOR_HIGHLIGHT if game.is_game_over() else COLOR_TEXT)
-        self.screen.blit(status_text, (sidebar_x + 15, 235))
+        self.screen.blit(status_text, (sidebar_x + 15, 245))
 
         # 绘制按钮
-        self._draw_button(sidebar_x + 15, 280, sidebar_width - 30, 35, "重新开始", game.restart_btn_rect)
-        self._draw_button(sidebar_x + 15, 325, sidebar_width - 30, 35, "悔棋", game.undo_btn_rect)
-        self._draw_button(sidebar_x + 15, 370, sidebar_width - 30, 35, "退出", game.quit_btn_rect)
+        self._draw_button(sidebar_x + 15, 290, sidebar_width - 30, 35, "重新开始", game.restart_btn_rect)
+        self._draw_button(sidebar_x + 15, 335, sidebar_width - 30, 35, "悔棋", game.undo_btn_rect)
+        self._draw_button(sidebar_x + 15, 380, sidebar_width - 30, 35, "退出", game.quit_btn_rect)
 
         # 绘制帮助信息
-        help_y = 430
-        help_texts = [
-            "游戏规则:",
-            "1. 黑棋先行",
-            "2. 轮流下棋",
-            "3. 五子连珠获胜",
-            "",
-            "操作说明:",
-            "• 点击棋盘落子",
-            "• 支持悔棋功能",
-        ]
+        help_y = 440
+        if game.game_mode == GAME_MODE_PVE:
+            help_texts = [
+                "游戏规则:",
+                "1. 你执黑棋先行",
+                "2. AI执白棋",
+                "3. 五子连珠获胜",
+                "",
+                "操作说明:",
+                "• 点击棋盘落子",
+                "• 支持悔棋功能",
+            ]
+        else:
+            help_texts = [
+                "游戏规则:",
+                "1. 黑棋先行",
+                "2. 轮流下棋",
+                "3. 五子连珠获胜",
+                "",
+                "操作说明:",
+                "• 点击棋盘落子",
+                "• 支持悔棋功能",
+            ]
         for i, text in enumerate(help_texts):
             help_text = self.font_small.render(text, True, COLOR_TEXT)
             self.screen.blit(help_text, (sidebar_x + 15, help_y + i * 22))
@@ -263,3 +284,59 @@ class UI:
         pygame.draw.rect(self.screen, (255, 215, 0), bg_rect, 3, border_radius=10)
 
         self.screen.blit(text_surface, text_rect)
+
+    def draw_mode_selection(self, game):
+        """绘制模式选择界面"""
+        # 绘制背景
+        self.screen.fill((240, 230, 210))
+
+        # 绘制标题
+        title = self.font_title.render("五子棋", True, (139, 69, 19))
+        title_rect = title.get_rect(center=(WINDOW_WIDTH // 2, 120))
+        self.screen.blit(title, title_rect)
+
+        # 绘制副标题
+        subtitle = self.font_large.render("Gomoku Game", True, COLOR_TEXT)
+        subtitle_rect = subtitle.get_rect(center=(WINDOW_WIDTH // 2, 180))
+        self.screen.blit(subtitle, subtitle_rect)
+
+        # 绘制选择提示
+        prompt = self.font_normal.render("请选择游戏模式:", True, COLOR_TEXT)
+        prompt_rect = prompt.get_rect(center=(WINDOW_WIDTH // 2, 250))
+        self.screen.blit(prompt, prompt_rect)
+
+        # 绘制模式选择按钮
+        center_x = WINDOW_WIDTH // 2
+
+        # 双人对战按钮
+        pvp_rect = pygame.Rect(center_x - 150, 300, 130, 50)
+        mouse_pos = pygame.mouse.get_pos()
+        is_pvp_hover = pvp_rect.collidepoint(mouse_pos)
+        pygame.draw.rect(self.screen, COLOR_BUTTON_HOVER if is_pvp_hover else COLOR_BUTTON, pvp_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (100, 50, 10), pvp_rect, 2, border_radius=8)
+        pvp_text = self.font_normal.render("双人对战", True, (255, 255, 255))
+        pvp_text_rect = pvp_text.get_rect(center=pvp_rect.center)
+        self.screen.blit(pvp_text, pvp_text_rect)
+
+        # 人机对战按钮
+        pve_rect = pygame.Rect(center_x + 20, 300, 130, 50)
+        is_pve_hover = pve_rect.collidepoint(mouse_pos)
+        pygame.draw.rect(self.screen, COLOR_BUTTON_HOVER if is_pve_hover else COLOR_BUTTON, pve_rect, border_radius=8)
+        pygame.draw.rect(self.screen, (100, 50, 10), pve_rect, 2, border_radius=8)
+        pve_text = self.font_normal.render("人机对战", True, (255, 255, 255))
+        pve_text_rect = pve_text.get_rect(center=pve_rect.center)
+        self.screen.blit(pve_text, pve_text_rect)
+
+        # 绘制说明
+        descriptions = [
+            "双人对战: 两位玩家轮流下棋",
+            "人机对战: 你执黑棋，与AI对战",
+        ]
+        for i, desc in enumerate(descriptions):
+            desc_text = self.font_small.render(desc, True, COLOR_TEXT)
+            desc_rect = desc_text.get_rect(center=(WINDOW_WIDTH // 2, 400 + i * 30))
+            self.screen.blit(desc_text, desc_rect)
+
+        # 更新按钮区域
+        game.pvp_btn_rect = pvp_rect
+        game.pve_btn_rect = pve_rect

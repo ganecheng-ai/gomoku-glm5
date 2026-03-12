@@ -58,3 +58,12 @@ SOUND_VOLUME = 0.5  # 音效音量 (0.0 - 1.0)
 # 游戏记录
 RECORD_DIR = "game_records"  # 游戏记录保存目录
 MAX_RECORDS = 100  # 最大保存记录数
+
+# 游戏模式
+GAME_MODE_PVP = "pvp"  # 双人对战
+GAME_MODE_PVE = "pve"  # 人机对战
+
+# AI难度
+AI_DIFFICULTY_EASY = 1
+AI_DIFFICULTY_MEDIUM = 2
+AI_DIFFICULTY_HARD = 3

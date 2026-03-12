@@ -16,6 +16,7 @@ from gomoku.player import Player
 from gomoku.constants import PLAYER_BLACK, PLAYER_WHITE
 from gomoku.timer import Timer, GameTimer
 from gomoku.record import GameRecord, RecordManager
+from gomoku.ai import AIPlayer
 
 
 class TestBoard(unittest.TestCase):
@@ -282,6 +283,57 @@ class TestRecordManager(unittest.TestCase):
         self.assertTrue(self.manager.delete_record(filename))
         records = self.manager.list_records()
         self.assertEqual(len(records), 0)
+
+
+class TestAIPlayer(unittest.TestCase):
+    """AI玩家测试"""
+
+    def setUp(self):
+        """测试前准备"""
+        self.board = Board()
+        self.ai_black = AIPlayer(PLAYER_BLACK, 2)
+        self.ai_white = AIPlayer(PLAYER_WHITE, 2)
+
+    def test_ai_init(self):
+        """测试AI初始化"""
+        self.assertEqual(self.ai_black.player_type, PLAYER_BLACK)
+        self.assertEqual(self.ai_white.player_type, PLAYER_WHITE)
+        self.assertEqual(self.ai_black.difficulty, 2)
+
+    def test_ai_first_move(self):
+        """测试AI第一步"""
+        row, col = self.ai_white.get_best_move(self.board)
+        # 空棋盘时应该下在中心附近
+        self.assertTrue(6 <= row <= 8)
+        self.assertTrue(6 <= col <= 8)
+
+    def test_ai_defense(self):
+        """测试AI防守"""
+        # 黑棋连成四子，AI应该堵截
+        for i in range(4):
+            self.board.place_piece(7, i, PLAYER_BLACK)
+
+        row, col = self.ai_white.get_best_move(self.board)
+        # AI应该堵截
+        self.board.place_piece(row, col, PLAYER_WHITE)
+        winner = self.board.check_winner(7, 3)
+        self.assertIsNone(winner)
+
+    def test_ai_attack(self):
+        """测试AI进攻"""
+        # 白棋连成四子
+        for i in range(4):
+            self.board.place_piece(7, i, PLAYER_WHITE)
+
+        row, col = self.ai_white.get_best_move(self.board)
+        self.board.place_piece(row, col, PLAYER_WHITE)
+        winner = self.board.check_winner(row, col)
+        self.assertEqual(winner, PLAYER_WHITE)
+
+    def test_ai_get_piece_name(self):
+        """测试AI棋子名称"""
+        self.assertEqual(self.ai_black.get_piece_name(), "AI黑棋")
+        self.assertEqual(self.ai_white.get_piece_name(), "AI白棋")
 
 
 if __name__ == "__main__":
