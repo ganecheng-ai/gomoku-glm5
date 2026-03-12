@@ -20,6 +20,9 @@
 - 重新开始
 - 步数统计
 - 最后一步标记
+- 计时器功能
+- 游戏记录保存
+- 音效支持
 
 ## 系统要求
 
@@ -78,7 +81,10 @@ gomoku-glm5/
 │   ├── board.py         # 棋盘类
 │   ├── player.py        # 玩家类
 │   ├── ui.py            # 界面渲染
-│   └── constants.py     # 常量定义
+│   ├── constants.py     # 常量定义
+│   ├── timer.py         # 计时器模块
+│   ├── sound.py         # 音效模块
+│   └── record.py        # 游戏记录模块
 ├── assets/
 │   ├── fonts/           # 字体文件
 │   ├── images/          # 图片资源
@@ -111,6 +117,7 @@ pyinstaller --onefile --windowed --name gomoku-glm5 main.py
 
 ## 版本历史
 
+- **v0.4.0** - 高级功能（游戏记录、计时器、音效）
 - **v0.3.0** - 精美界面，中文支持
 - **v0.2.0** - 完整游戏逻辑
 - **v0.1.0** - 基础游戏框架

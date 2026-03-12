@@ -8,6 +8,9 @@ from .constants import *
 from .board import Board
 from .player import Player
 from .ui import UI
+from .timer import GameTimer
+from .sound import SoundManager
+from .record import GameRecord, RecordManager
 
 
 class Game:
@@ -25,6 +28,17 @@ class Game:
         # 初始化游戏组件
         self.board = Board()
         self.ui = UI(self.screen)
+
+        # 初始化计时器
+        self.timer = GameTimer(DEFAULT_TIME_LIMIT)
+        self.timer_enabled = TIMER_ENABLED
+
+        # 初始化音效
+        self.sound = SoundManager()
+
+        # 初始化记录管理器
+        self.record_manager = RecordManager()
+        self.record = GameRecord()
 
         # 初始化玩家
         self.black_player = Player(PLAYER_BLACK, "黑棋")
@@ -49,18 +63,32 @@ class Game:
         sidebar_x = BOARD_MARGIN + (BOARD_SIZE - 1) * CELL_SIZE + 60
         sidebar_width = WINDOW_WIDTH - sidebar_x - 20
 
-        self.restart_btn_rect = pygame.Rect(sidebar_x + 15, 250, sidebar_width - 30, 40)
-        self.undo_btn_rect = pygame.Rect(sidebar_x + 15, 310, sidebar_width - 30, 40)
-        self.quit_btn_rect = pygame.Rect(sidebar_x + 15, 370, sidebar_width - 30, 40)
+        self.restart_btn_rect = pygame.Rect(sidebar_x + 15, 280, sidebar_width - 30, 35)
+        self.undo_btn_rect = pygame.Rect(sidebar_x + 15, 325, sidebar_width - 30, 35)
+        self.quit_btn_rect = pygame.Rect(sidebar_x + 15, 370, sidebar_width - 30, 35)
 
     def reset(self):
         """重置游戏"""
+        # 保存上一局记录（如果有）
+        if self.record.moves:
+            self.record_manager.save_record(self.record)
+
         self.board.reset()
         self.black_player.reset()
         self.white_player.reset()
         self.current_player = self.black_player
         self.state = GAME_STATE_PLAYING
         self.winner = None
+
+        # 重置计时器
+        self.timer.reset()
+
+        # 重置记录
+        self.record = GameRecord()
+        self.record.start()
+
+        # 播放按钮音效
+        self.sound.play_button()
 
     def get_current_player_name(self):
         """获取当前玩家名称"""
@@ -81,6 +109,12 @@ class Game:
         else:
             return "游戏进行中"
 
+    def get_timer_info(self):
+        """获取计时器信息"""
+        if not self.timer_enabled:
+            return None
+        return self.timer.get_format_times()
+
     def is_game_over(self):
         """检查游戏是否结束"""
         return self.state != GAME_STATE_PLAYING
@@ -98,22 +132,51 @@ class Game:
             if self.board.place_piece(row, col, self.current_player.player_type):
                 self.current_player.add_move()
 
+                # 记录这一步
+                elapsed = self.timer.get_current_time() if self.timer_enabled else 0
+                self.record.add_move(row, col, self.current_player.player_type, elapsed)
+
+                # 播放落子音效
+                self.sound.play_place()
+
                 # 检查胜负
                 winner = self.board.check_winner(row, col)
                 if winner == PLAYER_BLACK:
                     self.state = GAME_STATE_BLACK_WIN
                     self.winner = winner
+                    self._end_game(winner)
                 elif winner == PLAYER_WHITE:
                     self.state = GAME_STATE_WHITE_WIN
                     self.winner = winner
+                    self._end_game(winner)
                 elif self.board.is_full():
                     self.state = GAME_STATE_DRAW
+                    self._end_game(0)
                 else:
-                    # 切换玩家
+                    # 切换玩家和计时器
                     self.current_player = (
                         self.white_player if self.current_player == self.black_player
                         else self.black_player
                     )
+                    if self.timer_enabled:
+                        self.timer.switch_turn()
+
+    def _end_game(self, winner):
+        """结束游戏"""
+        self.timer.stop()
+
+        if winner == PLAYER_BLACK:
+            self.record.set_winner(PLAYER_BLACK)
+            self.sound.play_win()
+        elif winner == PLAYER_WHITE:
+            self.record.set_winner(PLAYER_WHITE)
+            self.sound.play_win()
+        else:
+            self.record.set_draw()
+            self.sound.play_draw()
+
+        # 保存记录
+        self.record_manager.save_record(self.record)
 
     def handle_button_click(self, pos):
         """处理按钮点击"""
@@ -130,14 +193,28 @@ class Game:
             return
 
         if self.board.undo_last_move():
+            # 播放悔棋音效
+            self.sound.play_undo()
+
             # 切换回上一个玩家
             self.current_player = (
                 self.white_player if self.current_player == self.black_player
                 else self.black_player
             )
 
+            # 切换计时器
+            if self.timer_enabled:
+                self.timer.switch_turn()
+
     def run(self):
         """运行游戏主循环"""
+        # 开始记录
+        self.record.start()
+
+        # 开始计时
+        if self.timer_enabled:
+            self.timer.start_turn(True)
+
         while self.running:
             # 事件处理
             for event in pygame.event.get():

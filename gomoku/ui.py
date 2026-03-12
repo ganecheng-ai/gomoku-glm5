@@ -16,6 +16,7 @@ class UI:
         self.font_large = None
         self.font_normal = None
         self.font_small = None
+        self.font_timer = None
         self._init_fonts()
 
     def _init_fonts(self):
@@ -41,16 +42,19 @@ class UI:
                 self.font_large = pygame.font.Font(font_path, FONT_SIZE_TITLE)
                 self.font_normal = pygame.font.Font(font_path, FONT_SIZE_NORMAL)
                 self.font_small = pygame.font.Font(font_path, FONT_SIZE_SMALL)
+                self.font_timer = pygame.font.Font(font_path, 18)
             else:
                 # 使用系统默认字体
                 self.font_large = pygame.font.SysFont('simhei', FONT_SIZE_TITLE)
                 self.font_normal = pygame.font.SysFont('simhei', FONT_SIZE_NORMAL)
                 self.font_small = pygame.font.SysFont('simhei', FONT_SIZE_SMALL)
+                self.font_timer = pygame.font.SysFont('simhei', 18)
         except Exception:
             # 如果中文字体加载失败，使用默认字体
             self.font_large = pygame.font.Font(None, FONT_SIZE_TITLE)
             self.font_normal = pygame.font.Font(None, FONT_SIZE_NORMAL)
             self.font_small = pygame.font.Font(None, FONT_SIZE_SMALL)
+            self.font_timer = pygame.font.Font(None, 18)
 
     def draw_board(self, board):
         """绘制棋盘"""
@@ -151,20 +155,25 @@ class UI:
 
         # 绘制步数
         moves_text = self.font_normal.render(f"步数: {game.get_total_moves()}", True, COLOR_TEXT)
-        self.screen.blit(moves_text, (sidebar_x + 15, 140))
+        self.screen.blit(moves_text, (sidebar_x + 15, 130))
+
+        # 绘制计时器
+        timer_info = game.get_timer_info()
+        if timer_info:
+            self._draw_timer(sidebar_x + 15, 165, sidebar_width - 30, timer_info)
 
         # 绘制游戏状态
         status = game.get_status_text()
         status_text = self.font_normal.render(status, True, COLOR_HIGHLIGHT if game.is_game_over() else COLOR_TEXT)
-        self.screen.blit(status_text, (sidebar_x + 15, 180))
+        self.screen.blit(status_text, (sidebar_x + 15, 235))
 
         # 绘制按钮
-        self._draw_button(sidebar_x + 15, 250, sidebar_width - 30, 40, "重新开始", game.restart_btn_rect)
-        self._draw_button(sidebar_x + 15, 310, sidebar_width - 30, 40, "悔棋", game.undo_btn_rect)
-        self._draw_button(sidebar_x + 15, 370, sidebar_width - 30, 40, "退出", game.quit_btn_rect)
+        self._draw_button(sidebar_x + 15, 280, sidebar_width - 30, 35, "重新开始", game.restart_btn_rect)
+        self._draw_button(sidebar_x + 15, 325, sidebar_width - 30, 35, "悔棋", game.undo_btn_rect)
+        self._draw_button(sidebar_x + 15, 370, sidebar_width - 30, 35, "退出", game.quit_btn_rect)
 
         # 绘制帮助信息
-        help_y = 440
+        help_y = 430
         help_texts = [
             "游戏规则:",
             "1. 黑棋先行",
@@ -177,7 +186,39 @@ class UI:
         ]
         for i, text in enumerate(help_texts):
             help_text = self.font_small.render(text, True, COLOR_TEXT)
-            self.screen.blit(help_text, (sidebar_x + 15, help_y + i * 25))
+            self.screen.blit(help_text, (sidebar_x + 15, help_y + i * 22))
+
+    def _draw_timer(self, x, y, width, timer_info):
+        """绘制计时器"""
+        # 黑棋计时
+        black_time = timer_info.get("black", "--:--")
+        black_status = timer_info.get("black_status", "normal")
+        black_color = self._get_timer_color(black_status)
+
+        black_label = self.font_timer.render("黑棋:", True, COLOR_TEXT)
+        black_time_text = self.font_timer.render(black_time, True, black_color)
+
+        self.screen.blit(black_label, (x, y))
+        self.screen.blit(black_time_text, (x + 50, y))
+
+        # 白棋计时
+        white_time = timer_info.get("white", "--:--")
+        white_status = timer_info.get("white_status", "normal")
+        white_color = self._get_timer_color(white_status)
+
+        white_label = self.font_timer.render("白棋:", True, COLOR_TEXT)
+        white_time_text = self.font_timer.render(white_time, True, white_color)
+
+        self.screen.blit(white_label, (x + 100, y))
+        self.screen.blit(white_time_text, (x + 150, y))
+
+    def _get_timer_color(self, status):
+        """获取计时器颜色"""
+        if status == "danger":
+            return COLOR_TIMER_DANGER
+        elif status == "warning":
+            return COLOR_TIMER_WARNING
+        return COLOR_TIMER_NORMAL
 
     def _draw_button(self, x, y, width, height, text, rect):
         """绘制按钮"""

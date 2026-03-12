@@ -23,6 +23,9 @@ COLOR_TEXT = (50, 50, 50)  # 文字颜色
 COLOR_BUTTON = (139, 69, 19)  # 按钮颜色
 COLOR_BUTTON_HOVER = (160, 82, 45)  # 按钮悬停颜色
 COLOR_PANEL_BG = (245, 222, 179)  # 面板背景色
+COLOR_TIMER_NORMAL = (50, 50, 50)  # 计时器正常颜色
+COLOR_TIMER_WARNING = (255, 140, 0)  # 计时器警告颜色
+COLOR_TIMER_DANGER = (255, 0, 0)  # 计时器危险颜色
 
 # 棋子设置
 PIECE_RADIUS = 17  # 棋子半径
@@ -41,3 +44,17 @@ PLAYER_WHITE = 2
 FONT_SIZE_TITLE = 36
 FONT_SIZE_NORMAL = 20
 FONT_SIZE_SMALL = 16
+
+# 计时器设置
+TIMER_ENABLED = True  # 是否启用计时器
+DEFAULT_TIME_LIMIT = 0  # 默认时间限制 (0表示无限制，单位：秒)
+TIMER_WARNING_THRESHOLD = 30  # 计时器警告阈值 (秒)
+TIMER_DANGER_THRESHOLD = 10  # 计时器危险阈值 (秒)
+
+# 音效设置
+SOUND_ENABLED = True  # 是否启用音效
+SOUND_VOLUME = 0.5  # 音效音量 (0.0 - 1.0)
+
+# 游戏记录
+RECORD_DIR = "game_records"  # 游戏记录保存目录
+MAX_RECORDS = 100  # 最大保存记录数
