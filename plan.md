@@ -63,6 +63,10 @@
 - [x] 添加 FUSE 依赖安装
 - [x] 创建正确的 AppDir 结构
 
+### 第九阶段：CI/CD 维护 (v1.2.2)
+- [x] 更新 GitHub Actions 以兼容 Node.js 24
+- [x] 添加 FORCE_JAVASCRIPT_ACTIONS_TO_NODE24 环境变量
+
 ## 文件结构
 ```
 gomoku-glm5/
@@ -93,6 +97,7 @@ gomoku-glm5/
 ```
 
 ## 版本历史
+- v1.2.2 - 更新 GitHub Actions 以兼容 Node.js 24
 - v1.2.1 - 修复 AppImage 构建问题
 - v1.2.0 - 增强 Linux 发布格式 (.deb, .AppImage)
 - v1.1.0 - AI对战功能，游戏模式选择
@@ -103,4 +108,4 @@ gomoku-glm5/
 - v0.1.0 - 基础游戏框架
 
 ## 当前状态
-v1.2.1 发布完成！AppImage 构建问题已修复，所有平台发布格式均已就绪。
+v1.2.2 发布完成！GitHub Actions 已更新以兼容 Node.js 24。

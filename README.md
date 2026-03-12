@@ -143,6 +143,7 @@ pyinstaller --onefile --windowed --name gomoku-glm5 main.py
 
 ## 版本历史
 
+- **v1.2.2** - 更新 GitHub Actions 以兼容 Node.js 24
 - **v1.2.1** - 修复 AppImage 构建问题
 - **v1.2.0** - 增强 Linux 发布格式 (.deb, .AppImage)
 - **v1.1.0** - 新增AI对战功能，游戏模式选择
