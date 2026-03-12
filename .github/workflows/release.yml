@@ -105,24 +105,71 @@ jobs:
       - name: Build AppImage (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy-x86_64.AppImage
+          # Install FUSE for AppImage support
+          sudo apt-get update -qq
+          sudo apt-get install -y libfuse2
+
+          # Download appimagetool
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+          # Create AppDir structure
           mkdir -p AppDir/usr/bin
           mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
           mkdir -p AppDir/usr/share/doc/gomoku-glm5
+
+          # Copy executable and docs
           cp dist/gomoku-glm5 AppDir/usr/bin/
+          chmod +x AppDir/usr/bin/gomoku-glm5
           cp README.md AppDir/usr/share/doc/gomoku-glm5/
           cp LICENSE AppDir/usr/share/doc/gomoku-glm5/
-          echo "[Desktop Entry]" > AppDir/usr/share/applications/gomoku-glm5.desktop
-          echo "Name=五子棋" >> AppDir/usr/share/applications/gomoku-glm5.desktop
-          echo "Comment=Gomoku Game" >> AppDir/usr/share/applications/gomoku-glm5.desktop
-          echo "Exec=gomoku-glm5" >> AppDir/usr/share/applications/gomoku-glm5.desktop
-          echo "Icon=gomoku" >> AppDir/usr/share/applications/gomoku-glm5.desktop
-          echo "Type=Application" >> AppDir/usr/share/applications/gomoku-glm5.desktop
-          echo "Categories=Game;BoardGame;" >> AppDir/usr/share/applications/gomoku-glm5.desktop
-          ln -s usr/share/applications/gomoku-glm5.desktop AppDir/gomoku-glm5.desktop
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage --executable dist/gomoku-glm5 || true
-          mv gomoku-glm5-*.AppImage dist/${{ matrix.asset_name }}.AppImage || true
+
+          # Create desktop file
+          cat > AppDir/usr/share/applications/gomoku-glm5.desktop << 'DESKTOP_EOF'
+          [Desktop Entry]
+          Name=五子棋
+          Comment=Gomoku Game - 精美的五子棋游戏
+          Exec=gomoku-glm5
+          Icon=gomoku-glm5
+          Type=Application
+          Categories=Game;BoardGame;
+          Terminal=false
+          DESKTOP_EOF
+
+          # Create a simple icon using ImageMagick
+          if command -v convert &> /dev/null; then
+            convert -size 256x256 xc:'#DEB887' -fill '#2F1810' -draw "circle 128,128 128,50" AppDir/usr/share/icons/hicolor/256x256/apps/gomoku-glm5.png
+          else
+            # Install ImageMagick if not available
+            sudo apt-get install -y imagemagick
+            convert -size 256x256 xc:'#DEB887' -fill '#2F1810' -draw "circle 128,128 128,50" AppDir/usr/share/icons/hicolor/256x256/apps/gomoku-glm5.png
+          fi
+
+          # Create symlinks for AppImage
+          ln -sf usr/share/applications/gomoku-glm5.desktop AppDir/gomoku-glm5.desktop
+          ln -sf usr/share/icons/hicolor/256x256/apps/gomoku-glm5.png AppDir/gomoku-glm5.png
+
+          # Create AppRun script
+          cat > AppDir/AppRun << 'APPRUN_EOF'
+          #!/bin/bash
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          export PATH="${HERE}/usr/bin:${PATH}"
+          exec "${HERE}/usr/bin/gomoku-glm5" "$@"
+          APPRUN_EOF
+          chmod +x AppDir/AppRun
+
+          # Build AppImage using appimagetool
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir dist/${{ matrix.asset_name }}.AppImage
+
+          # Verify AppImage was created
+          if [ -f dist/${{ matrix.asset_name }}.AppImage ]; then
+            chmod +x dist/${{ matrix.asset_name }}.AppImage
+            echo "AppImage created successfully: $(ls -lh dist/${{ matrix.asset_name }}.AppImage)"
+          else
+            echo "ERROR: AppImage creation failed!"
+            exit 1
+          fi
 
       - name: Create distribution package (Windows)
         if: matrix.os == 'windows-latest'

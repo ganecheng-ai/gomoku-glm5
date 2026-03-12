@@ -57,6 +57,12 @@
 - [x] 更新 README.md 下载说明
 - [x] 更新 GitHub Actions release 配置
 
+### 第八阶段：修复 AppImage 构建 (v1.2.1)
+- [x] 修复 AppImage 构建失败问题
+- [x] 使用 appimagetool 替代 linuxdeploy
+- [x] 添加 FUSE 依赖安装
+- [x] 创建正确的 AppDir 结构
+
 ## 文件结构
 ```
 gomoku-glm5/
@@ -87,6 +93,7 @@ gomoku-glm5/
 ```
 
 ## 版本历史
+- v1.2.1 - 修复 AppImage 构建问题
 - v1.2.0 - 增强 Linux 发布格式 (.deb, .AppImage)
 - v1.1.0 - AI对战功能，游戏模式选择
 - v1.0.0 - 正式发布，日志系统
@@ -96,4 +103,4 @@ gomoku-glm5/
 - v0.1.0 - 基础游戏框架
 
 ## 当前状态
-v1.2.0 开发完成！增强 Linux 发布格式支持 (.deb, .AppImage)。
+v1.2.1 开发中，修复 AppImage 构建问题。
